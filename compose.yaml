@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    container_name: pedidoDB
+    environment:
+      - 'POSTGRES_DB=pedidoDB'
+      - 'POSTGRES_PASSWORD=password'
+      - 'POSTGRES_USER=sa'
+    ports:
+      - '5435:5432'
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    container_name: rabbitmq
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: password
