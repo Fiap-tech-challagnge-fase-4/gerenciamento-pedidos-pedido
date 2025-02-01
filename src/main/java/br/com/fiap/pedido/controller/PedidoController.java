@@ -10,7 +10,7 @@ import br.com.fiap.pedido.service.PedidoService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pedido")
+@RequestMapping("/api/pedidos")
 public class PedidoController {
 
     @Autowired
