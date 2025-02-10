@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+//import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.function.StreamBridge;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,15 +30,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import br.com.fiap.pedido.enums.StatusPedido;
-import br.com.fiap.pedido.model.ItemPedido;
-import br.com.fiap.pedido.model.Pedido;
+import br.com.fiap.pedido.model.PedidoModel;
+import br.com.fiap.pedido.repository.entities.ItemPedido;
+import br.com.fiap.pedido.repository.entities.Pedido;
 import br.com.fiap.pedido.repository.PedidoRepository;
 import br.com.fiap.pedido.service.impl.PedidoServiceImpl;
-import lombok.var;
+import br.com.fiap.pedido.utils.Mapper;
 
 @SpringBootTest
 class PedidoServiceImplTest {
@@ -72,16 +72,16 @@ class PedidoServiceImplTest {
     void deveListarPedidosComSucesso() throws Exception {
         //Arrange
         List<Pedido> listaPedidos = Arrays.asList(gerarPedido(1), gerarPedido(2));
-		when(pedidoServiceImpl.listarPedido()).thenReturn(listaPedidos);
+		when(pedidoRepository.findAll()).thenReturn(listaPedidos);
 
         //Act
-        List<Pedido> listaPedidosObtida = pedidoServiceImpl.listarPedido();
+        List<PedidoModel> listaPedidosObtida = pedidoServiceImpl.listarPedido();
 
 		// Assert
 		verify(pedidoRepository, times(1)).findAll();		
 		assertThat(listaPedidosObtida).isNotEmpty().hasSize(2);
 		assertThat(listaPedidosObtida).allSatisfy(pedido -> {
-			assertThat(pedido).isNotNull().isInstanceOf(Pedido.class);
+			assertThat(pedido).isNotNull().isInstanceOf(PedidoModel.class);
 		});
     }
 	
@@ -103,7 +103,7 @@ class PedidoServiceImplTest {
 		when(objectMapper.readTree(anyString())).thenReturn(jsonNode);
 		//doNothing().when(streamBridge).send(anyString(), messageCaptor.capture());
 
-		var pedidoCriado = pedidoServiceImpl.criarPedido(pedido);
+		PedidoModel pedidoCriado = pedidoServiceImpl.criarPedido(Mapper.mapPedidoParaPedidoModel(pedido));
 
 		// Assert
 		verify(pedidoRepository, times(1)).save(any(Pedido.class));
@@ -120,12 +120,12 @@ class PedidoServiceImplTest {
 		when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
         when(pedidoRepository.findById(anyInt())).thenReturn(Optional.of(pedido));
         //Act
-		var pedidoFinalizado = pedidoServiceImpl.finalizarPedido(pedido.getId());
+		PedidoModel pedidoFinalizado = pedidoServiceImpl.finalizarPedido(pedido.getId());
 		
 		//Assert
 		verify(pedidoRepository, times(1)).save(any(Pedido.class));
 		assertThat(pedidoFinalizado).isNotNull();
-		assertThat(pedidoFinalizado).isInstanceOf(Pedido.class).isNotNull();
+		assertThat(pedidoFinalizado).isInstanceOf(PedidoModel.class).isNotNull();
 		assertThat(pedidoFinalizado.getDataconclusao()).isEqualTo(pedido.getDataconclusao());
 		assertThat(pedidoFinalizado.getStatus().name()).isEqualTo(StatusPedido.FINALIZADO.name());
     }
@@ -137,12 +137,12 @@ class PedidoServiceImplTest {
 		when(pedidoRepository.findById(anyInt())).thenReturn(Optional.of(pedido));
 
         //Act
-		var pedidoObtido = pedidoServiceImpl.obterPedido(pedido.getId());
+		PedidoModel pedidoObtido = pedidoServiceImpl.obterPedido(pedido.getId());
 
 		//Assert
 		verify(pedidoRepository, times(1)).findById(anyInt());
         assertThat(pedidoObtido).isNotNull();
-		assertThat(pedidoObtido).isInstanceOf(Pedido.class).isNotNull();
+		assertThat(pedidoObtido).isInstanceOf(PedidoModel.class).isNotNull();
 		assertThat(pedidoObtido.getId()).isEqualTo(pedido.getId());
     }
 
@@ -162,12 +162,12 @@ class PedidoServiceImplTest {
 		when(objectMapper.readTree(anyString())).thenReturn(jsonNode);
 
 		//Act
-		var pedidoAtualizado = pedidoServiceImpl.atualizarPedido(pedido.getId(), pedido);
+		PedidoModel pedidoAtualizado = pedidoServiceImpl.atualizarPedido(pedido.getId(), Mapper.mapPedidoParaPedidoModel(pedido));
         
 		//Assert
 		verify(pedidoRepository, times(1)).save(any(Pedido.class));
         assertThat(pedidoAtualizado).isNotNull();
-		assertThat(pedidoAtualizado).isInstanceOf(Pedido.class).isNotNull();
+		assertThat(pedidoAtualizado).isInstanceOf(PedidoModel.class).isNotNull();
 		assertThat(pedidoAtualizado.getDataconclusao()).isEqualTo(pedido.getDataconclusao());
 		assertThat(pedidoAtualizado.getStatus().name()).isEqualTo(StatusPedido.CRIADO.name());
     }
@@ -176,21 +176,21 @@ class PedidoServiceImplTest {
     void deveExcluirPedidoComSucesso() throws Exception {
         
          //Arrange
-		 Pedido pedido = gerarPedido(6);
-		 when(pedidoRepository.existsById(anyInt())).thenReturn(true);
+		 int idPedido = 6;
+		 Pedido pedido = gerarPedido(idPedido);
+		 when(pedidoRepository.findById(anyInt())).thenReturn(Optional.of(pedido));
 		 doNothing().when(pedidoRepository).deleteById(anyInt());
 
 		 //Act
-		 pedidoServiceImpl.excluirPedido(pedido.getId());         
+		 pedidoServiceImpl.excluirPedido(idPedido);         
 		 
 		 
 		 //Assert
-		//verify(pedidoRepository, times(1)).existsById(anyInt());
 		verify(pedidoRepository, times(1)).deleteById(anyInt());
     }
 		
 	private Pedido gerarPedido(int id) {		
-		var pedido = new Pedido();
+		Pedido pedido = new Pedido();
         pedido.setId(id);
         pedido.setClienteid(1);
         pedido.setValortotal(BigDecimal.valueOf(59.90));
@@ -198,39 +198,22 @@ class PedidoServiceImplTest {
         pedido.setDatacriacao(LocalDateTime.now());
         pedido.setStatus(StatusPedido.CRIADO);
 
-		var itemPedido = new ItemPedido();
+		ItemPedido itemPedido = new ItemPedido();
 		itemPedido.setId(1);
 		itemPedido.setPedido(pedido);
 		itemPedido.setPrecounitario(BigDecimal.valueOf(10.40));
 		itemPedido.setProdutoid(1);
 		itemPedido.setQuantidade(10);
 
-		var itens = Arrays.asList(itemPedido);
+		List<ItemPedido> itens = Arrays.asList(itemPedido);
 		pedido.setItens(itens);
         return pedido;
 	}
 
-	public static String asJsonString(final Pedido object) {
-		try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-			return mapper.writeValueAsString(object);
-		} catch (Exception e) {
-			return "{ }";
-		}
-	}
-
-	public static JsonNode gerarProdutoJsonNode(String produtoJson){
+	public static JsonNode gerarProdutoJsonNode(String produtoJson) throws Exception{
 		ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            JsonNode jsonNode = objectMapper.readTree(produtoJson);
-            return jsonNode;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-		return null;
+		JsonNode jsonNode = objectMapper.readTree(produtoJson);
+		return jsonNode;
 	}
 
 	public static String gerarProduto(){

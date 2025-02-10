@@ -1,4 +1,4 @@
-package br.com.fiap.pedido.model;
+package br.com.fiap.pedido.repository.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,7 +16,11 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Data
 @Entity
+@AllArgsConstructor
 public class ItemPedido implements Serializable{
+    public ItemPedido(){
+        
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -26,5 +31,16 @@ public class ItemPedido implements Serializable{
     private Integer produtoid;
     private Integer quantidade;
     private BigDecimal precounitario;
-}
 
+    public ItemPedido(
+        Integer id,
+        Integer produtoid,
+        Integer quantidade,
+        BigDecimal precounitario
+    ){
+        this.id = id;
+        this.produtoid = produtoid;
+        this.quantidade = quantidade;
+        this.precounitario = precounitario;
+    }
+}

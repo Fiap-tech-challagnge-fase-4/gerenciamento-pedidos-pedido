@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 //import org.springframework.amqp.rabbit.core.RabbitTemplate;
 //import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.fiap.pedido.enums.StatusPedido;
-import br.com.fiap.pedido.model.ItemPedido;
-import br.com.fiap.pedido.model.Pedido;
+import br.com.fiap.pedido.model.PedidoModel;
+import br.com.fiap.pedido.repository.entities.ItemPedido;
+import br.com.fiap.pedido.repository.entities.Pedido;
 import br.com.fiap.pedido.repository.PedidoRepository;
 import br.com.fiap.pedido.service.PedidoService;
+import br.com.fiap.pedido.utils.Mapper;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,13 +60,14 @@ public class PedidoServiceImpl implements PedidoService {
 	}
 
     // Método para listar todos os pedidos
-    public List<Pedido> listarPedido() {
-        return pedidoRepository.findAll();
+    public List<PedidoModel> listarPedido() {
+        List<Pedido> pedidos = pedidoRepository.findAll();
+        return pedidos.stream().map(p -> Mapper.mapPedidoParaPedidoModel(p)).collect(Collectors.toList());
     }
 
     // Método para finalizar um pedido criado
-    public Pedido finalizarPedido(Integer idpedido) {
-
+    public PedidoModel finalizarPedido(Integer idpedido) {
+        throwExceptionIfPedidoNotExists(idpedido);
         Pedido pedido = pedidoRepository.findById(idpedido).orElse(null);
         
         //Verifica se o pedido existe
@@ -80,13 +84,16 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setDataconclusao(LocalDateTime.now());
         pedido.setStatus(StatusPedido.FINALIZADO);
 
-        return pedidoRepository.save(pedido);
+        Pedido pedidoFinalizado = pedidoRepository.save(pedido);
+
+        return Mapper.mapPedidoParaPedidoModel(pedidoFinalizado);
     }
 
     // Método para criar um novo pedido
     @Transactional
-    public Pedido criarPedido(Pedido pedido) {
+    public PedidoModel criarPedido(PedidoModel pedidoModel) {
 
+        Pedido pedido = Mapper.mapPedidoModelParaPedido(pedidoModel);
          // Valida se os itens do pedido existem no estoque
          boolean produtosDisponiveis = verificarDisponibilidadeProdutos(pedido.getItens());
          if (!produtosDisponiveis) {
@@ -103,8 +110,7 @@ public class PedidoServiceImpl implements PedidoService {
          pedido.setStatus(StatusPedido.CRIADO);
  
          //Controla o sequencial do pedido de forma lógica
-         if (pedido.getId() == null) 
-         { 
+         if (pedido.getId() == 0 || pedido.getId() == null){ 
              Integer maxId = pedidoRepository.getMaxId(); 
              pedido.setId((maxId != null && maxId > 0) ? maxId + 1 : 1); 
          }
@@ -118,18 +124,18 @@ public class PedidoServiceImpl implements PedidoService {
          streamBridge.send(PEDIDO_OUTPUT, MessageBuilder.withPayload(pedido).build());
          //pedidoOutput.send(messageBuilder.build());
          
-         return savedPedido;
+         return Mapper.mapPedidoParaPedidoModel(savedPedido);
     }
 
     // Método para obter um pedido pelo ID
-    public Pedido obterPedido(Integer id) {
+    public PedidoModel obterPedido(Integer id) {
         Optional<Pedido> pedido = pedidoRepository.findById(id);
-        return pedido.orElse(null);
+        return Mapper.mapPedidoParaPedidoModel(pedido.orElse(null));
     }
 
     // Método para atualizar um pedido existente
-    public Pedido atualizarPedido(Integer id, Pedido pedido) {
-
+    public PedidoModel atualizarPedido(Integer id, PedidoModel pedidoModel) {
+        throwExceptionIfPedidoNotExists(id);
         //Por conta das regras de estoque, um novo o pedido é recriado ao invez de atualizar
         Pedido p = pedidoRepository.findById(id).orElse(null);
         
@@ -148,13 +154,13 @@ public class PedidoServiceImpl implements PedidoService {
         excluirPedido(id);
 
         //Cria um novo com as atualizações e mantendo o mesmo id
-        pedido.setId(id);
-        return criarPedido(pedido);
+        pedidoModel.setId(id);
+        return criarPedido(pedidoModel);
     }
 
     // Método para excluir um pedido pelo ID
     public void excluirPedido(Integer id) {
-
+        throwExceptionIfPedidoNotExists(id);
         Pedido pedido = pedidoRepository.findById(id).orElse(null);
         // Atualiza o estoque dos produtos
         if (pedido != null) {
@@ -226,7 +232,7 @@ public class PedidoServiceImpl implements PedidoService {
         return valortotal;
     }
 
-    // Atualiza o estoque de produtos, somando ou subtraindo a quantidade
+    //Atualiza o estoque de produtos, somando ou subtraindo a quantidade
     private boolean atualizaEstoqueProdutos(List<ItemPedido> itensPedido, boolean removerEstoque) {
         for (ItemPedido itemPedido : itensPedido) {
             Integer idProduto = itemPedido.getProdutoid();
@@ -240,5 +246,12 @@ public class PedidoServiceImpl implements PedidoService {
         }
 
         return true;
+    }
+
+    private void throwExceptionIfPedidoNotExists(Integer id){
+        PedidoModel pedido = this.obterPedido(id);        
+        if(pedido == null){
+            //throw new EntityNotFoundException(id);
+        }
     }
 }

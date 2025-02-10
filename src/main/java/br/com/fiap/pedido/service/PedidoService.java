@@ -4,20 +4,20 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import br.com.fiap.pedido.model.Pedido;
+import br.com.fiap.pedido.model.PedidoModel;
 
 @Service
 public interface PedidoService {
 
-    public List<Pedido> listarPedido();
+    public List<PedidoModel> listarPedido();
 
-    public Pedido finalizarPedido(Integer idpedido);
+    public PedidoModel finalizarPedido(Integer idpedido);
 
-    public Pedido criarPedido(Pedido pedido);
+    public PedidoModel criarPedido(PedidoModel pedido);
 
-    public Pedido obterPedido(Integer id);
+    public PedidoModel obterPedido(Integer id);
 
-    public Pedido atualizarPedido(Integer id, Pedido pedido);
+    public PedidoModel atualizarPedido(Integer id, PedidoModel pedido);
 
     public void excluirPedido(Integer id);
 }

@@ -1,13 +1,16 @@
 package br.com.fiap.pedido.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import br.com.fiap.pedido.model.Pedido;
+import br.com.fiap.pedido.model.PedidoModel;
+import br.com.fiap.pedido.model.dto.PedidoRequestDTO;
+import br.com.fiap.pedido.model.dto.PedidoResponseDTO;
 import br.com.fiap.pedido.service.PedidoService;
+import br.com.fiap.pedido.utils.Mapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -17,35 +20,40 @@ public class PedidoController {
     private PedidoService pedidoService;
 
     @GetMapping
-    public List<Pedido> listarPedido() {
-        return pedidoService.listarPedido();
+    public List<PedidoResponseDTO> listarPedido() {
+        var pedidos = pedidoService.listarPedido();
+        return pedidos.stream().map(p -> Mapper.mapPedidoModelParaPedidoResponseDTO(p)).collect(Collectors.toList());
     }
 
     @PostMapping
-    public Pedido criarPedido(@RequestBody Pedido pedido) {
-        return pedidoService.criarPedido(pedido);
+    public PedidoResponseDTO criarPedido(@RequestBody PedidoRequestDTO pedidoRequestDTO) {
+        PedidoModel pedidoModel = Mapper.mapPedidoRequestDtoParaPedidoModel(pedidoRequestDTO);
+        pedidoModel = pedidoService.criarPedido(pedidoModel);
+        return Mapper.mapPedidoModelParaPedidoResponseDTO(pedidoModel);
     }
 
     @PutMapping("/finalizar/{id}")
-    public Pedido finalizarPedido(@PathVariable Integer id) {
-        return pedidoService.finalizarPedido(id);
+    public PedidoResponseDTO finalizarPedido(@PathVariable Integer id) {
+        PedidoModel pedidoModel = pedidoService.finalizarPedido(id);
+        return Mapper.mapPedidoModelParaPedidoResponseDTO(pedidoModel);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pedido> obterPedido(@PathVariable Integer id) {
-        Pedido pedido = pedidoService.obterPedido(id);
-        return pedido != null ? ResponseEntity.ok(pedido) : ResponseEntity.notFound().build();
+    public PedidoResponseDTO obterPedido(@PathVariable Integer id) {
+        PedidoModel pedidoModel = pedidoService.obterPedido(id);
+
+        return Mapper.mapPedidoModelParaPedidoResponseDTO(pedidoModel);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Pedido> atualizarPedido(@PathVariable Integer id, @RequestBody Pedido pedido) {
-        Pedido pedidoAtualizado = pedidoService.atualizarPedido(id, pedido);
-        return pedidoAtualizado != null ? ResponseEntity.ok(pedidoAtualizado) : ResponseEntity.notFound().build();
+    public PedidoResponseDTO atualizarPedido(@PathVariable Integer id, @RequestBody PedidoRequestDTO pedidoRequestDTO) {
+        PedidoModel pedidoModel = Mapper.mapPedidoRequestDtoParaPedidoModel(pedidoRequestDTO);
+        PedidoModel pedidoAtualizado = pedidoService.atualizarPedido(id, pedidoModel);
+        return Mapper.mapPedidoModelParaPedidoResponseDTO(pedidoAtualizado);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluirPedido(@PathVariable Integer id) {
+    public void excluirPedido(@PathVariable Integer id) {        
         pedidoService.excluirPedido(id);
-        return ResponseEntity.noContent().build();
     }
 }

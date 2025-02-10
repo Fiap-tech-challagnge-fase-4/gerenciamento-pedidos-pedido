@@ -33,9 +33,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.http.MediaType;
 
 import br.com.fiap.pedido.enums.StatusPedido;
-import br.com.fiap.pedido.model.ItemPedido;
-import br.com.fiap.pedido.model.Pedido;
+import br.com.fiap.pedido.model.PedidoModel;
+import br.com.fiap.pedido.repository.entities.ItemPedido;
+import br.com.fiap.pedido.repository.entities.Pedido;
 import br.com.fiap.pedido.service.PedidoService;
+import br.com.fiap.pedido.utils.Mapper;
 
 public class PedidoControllerTest {
 
@@ -68,7 +70,7 @@ public class PedidoControllerTest {
     
     @Test
     void deveListarPedidosComSucesso() throws Exception {
-        List<Pedido> pedidos = gerarListaPedidos();
+        List<PedidoModel> pedidos = gerarListaPedidos().stream().map(p -> Mapper.mapPedidoParaPedidoModel(p)).toList();
         when(pedidoService.listarPedido()).thenReturn(pedidos);
 
         mockMvc.perform(get(endPoint))
@@ -83,7 +85,7 @@ public class PedidoControllerTest {
         
         Pedido pedido = gerarPedido(5);
     	
-        when(pedidoService.criarPedido(any())).thenReturn(pedido);
+        when(pedidoService.criarPedido(any())).thenReturn(Mapper.mapPedidoParaPedidoModel(pedido));
 
         var content = asJsonString(pedido);
 
@@ -99,10 +101,10 @@ public class PedidoControllerTest {
     void deveFinalizarPedidoComSucesso() throws Exception {
 
         Pedido pedido = gerarPedido(5);
-    	
-        when(pedidoService.finalizarPedido(any())).thenReturn(pedido);
-
         pedido.setStatus(StatusPedido.FINALIZADO);
+        
+    	PedidoModel pedidoModel = Mapper.mapPedidoParaPedidoModel(pedido);
+        when(pedidoService.finalizarPedido(any())).thenReturn(pedidoModel);
 
         var content = asJsonString(pedido);
 
@@ -121,7 +123,7 @@ public class PedidoControllerTest {
     	
         pedido.setStatus(StatusPedido.FINALIZADO);
 
-        when(pedidoService.obterPedido(anyInt())).thenReturn(pedido);
+        when(pedidoService.obterPedido(anyInt())).thenReturn(Mapper.mapPedidoParaPedidoModel(pedido));
 
         var content = asJsonString(pedido);
 
@@ -138,7 +140,7 @@ public class PedidoControllerTest {
 
         Pedido pedido = gerarPedido(5);
     	
-        when(pedidoService.atualizarPedido(anyInt(), any(Pedido.class))).thenReturn(pedido);
+        when(pedidoService.atualizarPedido(anyInt(), any(PedidoModel.class))).thenReturn(Mapper.mapPedidoParaPedidoModel(pedido));
 
         var content = asJsonString(pedido);
 
@@ -153,7 +155,7 @@ public class PedidoControllerTest {
     @Test
     void deveExcluirPedidoComSucesso() throws Exception {
         doNothing().when(pedidoService).excluirPedido(anyInt());
-        mockMvc.perform(delete(endPoint + "/1")).andExpect(status().isNoContent());
+        mockMvc.perform(delete(endPoint + "/1")).andExpect(status().isOk());
     }
 
     private List<Pedido> gerarListaPedidos() {
@@ -185,14 +187,10 @@ public class PedidoControllerTest {
         return pedido;
 	}
 
-    public static String asJsonString(final Pedido object) {
-		try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-			return mapper.writeValueAsString(object);
-		} catch (Exception e) {
-			return "{ }";
-		}
+    public static String asJsonString(final Pedido object) throws Exception{
+    	ObjectMapper mapper = new ObjectMapper();
+    	mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		return mapper.writeValueAsString(object);
 	}
 }

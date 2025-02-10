@@ -12,25 +12,18 @@ import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-//import org.springframework.test.context.ActiveProfiles;
 
 import br.com.fiap.pedido.enums.StatusPedido;
-import br.com.fiap.pedido.model.ItemPedido;
-import br.com.fiap.pedido.model.Pedido;
+import br.com.fiap.pedido.repository.entities.ItemPedido;
+import br.com.fiap.pedido.repository.entities.Pedido;
 import br.com.fiap.pedido.repository.PedidoRepository;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
-
 @SpringBootTest(properties = "spring.main.lazy-initialization=true", webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PedidoControllerIT {
 
@@ -44,16 +37,15 @@ public class PedidoControllerIT {
 
 	@BeforeEach
 	public void setup() {
-	    RestAssured.port = 8084;
+	    RestAssured.port = port;
 	    RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 	}
     
     @Test
     void deveListarPedidosComSucesso() throws Exception {
         //Arrange
-        pedidoRepository.save(gerarPedido(1));
-        pedidoRepository.save(gerarPedido(2));
-        
+        inserirPedido(gerarPedido());
+        inserirPedido(gerarPedido());
         //Act & Assert
         given().filter(new AllureRestAssured())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -66,7 +58,7 @@ public class PedidoControllerIT {
     void deveCriarPedidoComSucesso() throws Exception {
 
         //Arrange
-        Pedido pedido = gerarPedido(2);
+        Pedido pedido = gerarPedido();
         
         //Act & Assert
         given().filter(new AllureRestAssured())
@@ -86,8 +78,8 @@ public class PedidoControllerIT {
     @Test
     void deveFinalizarPedidoComSucesso() throws Exception {
         //Arrange
-        Pedido pedido = gerarPedido(3);    	
-        pedidoRepository.save(pedido);
+        Pedido pedido = gerarPedido();    	
+        inserirPedido(pedido);
 
         //Act & Assert
         given().filter(new AllureRestAssured())
@@ -98,9 +90,9 @@ public class PedidoControllerIT {
     @Test
     void deveObterPedidoComSucesso() throws Exception {
         //Act
-        Pedido pedido = gerarPedido(4);
-    	pedidoRepository.save(pedido);
-        
+        Pedido pedido = gerarPedido();
+        inserirPedido(pedido);
+
         //Act & Assert
         given().filter(new AllureRestAssured())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -113,8 +105,8 @@ public class PedidoControllerIT {
     void deveAtualizarPedidoComSucesso() throws Exception {
         
         //Arrange
-        Pedido pedido = gerarPedido(5);    	
-        pedidoRepository.save(pedido);
+        Pedido pedido = gerarPedido();    	
+        inserirPedido(pedido);
         pedido.setDataconclusao(LocalDateTime.now());
         pedido.setStatus(StatusPedido.CRIADO);
 
@@ -130,8 +122,8 @@ public class PedidoControllerIT {
     void deveExcluirPedidoComSucesso() throws Exception {
         
          //Arrange
-         Pedido pedido = gerarPedido(6);    	
-         pedidoRepository.save(pedido);
+         Pedido pedido = gerarPedido();    	
+         inserirPedido(pedido);
          pedido.setDataconclusao(LocalDateTime.now());
          pedido.setStatus(StatusPedido.CRIADO);
  
@@ -139,12 +131,13 @@ public class PedidoControllerIT {
          given().filter(new AllureRestAssured())
                  .contentType(MediaType.APPLICATION_JSON_VALUE)
                  .when().delete(endPoint + "/{id}", pedido.getId())
-                 .then().statusCode(HttpStatus.NO_CONTENT.value());
+                 .then().statusCode(HttpStatus.OK.value());
     }
 
-    private Pedido gerarPedido(int id) {		
+    private Pedido gerarPedido() {
+        Integer maxId = pedidoRepository.getMaxId(); 	
 		var pedido = new Pedido();
-        pedido.setId(id);
+        pedido.setId(maxId);
         pedido.setClienteid(1);
         pedido.setValortotal(BigDecimal.valueOf(59.90));
         pedido.setDataconclusao(LocalDateTime.now());
@@ -152,7 +145,6 @@ public class PedidoControllerIT {
         pedido.setStatus(StatusPedido.CRIADO);
 
        var itemPedido = new ItemPedido();
-		itemPedido.setId(1);
 		itemPedido.setPedido(pedido);
 		itemPedido.setPrecounitario(BigDecimal.valueOf(10.40));
 		itemPedido.setProdutoid(1);
@@ -163,14 +155,7 @@ public class PedidoControllerIT {
         return pedido;
 	}
 
-    public static String asJsonString(final Pedido object) {
-		try {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JavaTimeModule());
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-			return mapper.writeValueAsString(object);
-		} catch (Exception e) {
-			return "{ }";
-		}
-	}
+    private void inserirPedido(Pedido pedido){
+        pedidoRepository.save(pedido);
+    }
 }
