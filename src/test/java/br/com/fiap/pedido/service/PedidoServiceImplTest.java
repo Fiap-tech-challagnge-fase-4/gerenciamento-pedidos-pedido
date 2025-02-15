@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.function.StreamBridge;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -53,7 +52,7 @@ class PedidoServiceImplTest {
 
 	@Mock
     private StreamBridge streamBridge;
-
+	
     private PedidoServiceImpl pedidoServiceImpl;
     
     private AutoCloseable openMocks;
@@ -69,7 +68,7 @@ class PedidoServiceImplTest {
 	}
 	
 	@Test
-    void deveListarPedidosComSucesso() throws Exception {
+    void deveListarPedidosComSucesso() {
         //Arrange
         List<Pedido> listaPedidos = Arrays.asList(gerarPedido(1), gerarPedido(2));
 		when(pedidoRepository.findAll()).thenReturn(listaPedidos);
@@ -79,8 +78,8 @@ class PedidoServiceImplTest {
 
 		// Assert
 		verify(pedidoRepository, times(1)).findAll();		
-		assertThat(listaPedidosObtida).isNotEmpty().hasSize(2);
-		assertThat(listaPedidosObtida).allSatisfy(pedido -> {
+		assertThat(listaPedidosObtida).isNotEmpty().hasSize(2)
+			.allSatisfy(pedido -> {
 			assertThat(pedido).isNotNull().isInstanceOf(PedidoModel.class);
 		});
     }
@@ -94,14 +93,10 @@ class PedidoServiceImplTest {
         Pedido pedido = gerarPedido(2);
 		ResponseEntity<String> responseEntity = ResponseEntity.ok(produto);
 
-		// Capturar o argumento da mensagem
-        //ArgumentCaptor<Message<Pedido>> messageCaptor = ArgumentCaptor.forClass(Message.class);
-
 		//Act
         when(pedidoRepository.save(any(Pedido.class))).thenReturn(pedido);
 		when(restTemplate.getForEntity(anyString(), eq(String.class), anyInt())).thenReturn(responseEntity);
 		when(objectMapper.readTree(anyString())).thenReturn(jsonNode);
-		//doNothing().when(streamBridge).send(anyString(), messageCaptor.capture());
 
 		PedidoModel pedidoCriado = pedidoServiceImpl.criarPedido(Mapper.mapPedidoParaPedidoModel(pedido));
 
@@ -112,7 +107,7 @@ class PedidoServiceImplTest {
     }
 
 	@Test
-    void deveFinalizarPedidoComSucesso() throws Exception {
+    void deveFinalizarPedidoComSucesso() {
         
 		//Arrange
         Pedido pedido = gerarPedido(2);
@@ -124,14 +119,13 @@ class PedidoServiceImplTest {
 		
 		//Assert
 		verify(pedidoRepository, times(1)).save(any(Pedido.class));
-		assertThat(pedidoFinalizado).isNotNull();
-		assertThat(pedidoFinalizado).isInstanceOf(PedidoModel.class).isNotNull();
+		assertThat(pedidoFinalizado).isNotNull().isInstanceOf(PedidoModel.class).isNotNull();
 		assertThat(pedidoFinalizado.getDataconclusao()).isEqualTo(pedido.getDataconclusao());
 		assertThat(pedidoFinalizado.getStatus().name()).isEqualTo(StatusPedido.FINALIZADO.name());
     }
 
 	@Test
-    void deveObterPedidoComSucesso() throws Exception {
+    void deveObterPedidoComSucesso() {
         //Act
         Pedido pedido = gerarPedido(4);
 		when(pedidoRepository.findById(anyInt())).thenReturn(Optional.of(pedido));
@@ -141,8 +135,7 @@ class PedidoServiceImplTest {
 
 		//Assert
 		verify(pedidoRepository, times(1)).findById(anyInt());
-        assertThat(pedidoObtido).isNotNull();
-		assertThat(pedidoObtido).isInstanceOf(PedidoModel.class).isNotNull();
+        assertThat(pedidoObtido).isInstanceOf(PedidoModel.class).isNotNull();
 		assertThat(pedidoObtido.getId()).isEqualTo(pedido.getId());
     }
 
@@ -166,14 +159,13 @@ class PedidoServiceImplTest {
         
 		//Assert
 		verify(pedidoRepository, times(1)).save(any(Pedido.class));
-        assertThat(pedidoAtualizado).isNotNull();
-		assertThat(pedidoAtualizado).isInstanceOf(PedidoModel.class).isNotNull();
+        assertThat(pedidoAtualizado).isNotNull().isInstanceOf(PedidoModel.class).isNotNull();
 		assertThat(pedidoAtualizado.getDataconclusao()).isEqualTo(pedido.getDataconclusao());
 		assertThat(pedidoAtualizado.getStatus().name()).isEqualTo(StatusPedido.CRIADO.name());
     }
 
 	@Test
-    void deveExcluirPedidoComSucesso() throws Exception {
+    void deveExcluirPedidoComSucesso() {
         
          //Arrange
 		 int idPedido = 6;
@@ -212,13 +204,10 @@ class PedidoServiceImplTest {
 
 	public static JsonNode gerarProdutoJsonNode(String produtoJson) throws Exception{
 		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode jsonNode = objectMapper.readTree(produtoJson);
-		return jsonNode;
+		return objectMapper.readTree(produtoJson);
 	}
 
 	public static String gerarProduto(){
-		String produto = "{\"id\": 2,\"nome\": \"Camiseta Masculina\",\"descricao\": \"Camiseta de corrida\",\"preco\": 7.15,\"quantidadeestoque\": 80,\"categoria\": \"Vestuário\",\"imagemurl\": \"\",\"codigobarras\": \"102030\",\"status\": \"Ativo\"}";
-
-		return produto;
+		return "{\"id\": 2,\"nome\": \"Camiseta Masculina\",\"descricao\": \"Camiseta de corrida\",\"preco\": 7.15,\"quantidadeestoque\": 80,\"categoria\": \"Vestuário\",\"imagemurl\": \"\",\"codigobarras\": \"102030\",\"status\": \"Ativo\"}";
 	}
  }

@@ -3,7 +3,7 @@ package br.com.fiap.pedido.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
+import br.com.fiap.pedido.exceptions.UnAuthorizedChangeException;
 import br.com.fiap.pedido.enums.StatusPedido;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -43,13 +43,13 @@ public class PedidoModel{
         this.id = id;
     }
 
-    public void setStatus(StatusPedido statusPedido) throws Exception{
+    public void setStatus(StatusPedido statusPedido) throws UnAuthorizedChangeException {
         if(this.status == StatusPedido.FINALIZADO){
-            throw new Exception("Não é possível alterar o status de um pedido finalizado.");
+            throw new UnAuthorizedChangeException("Não é possível alterar o status de um pedido finalizado.");
         }
 
         if(this.status == statusPedido){
-            throw new Exception("O status do pedido já é: " + statusPedido.toString());
+            throw new UnAuthorizedChangeException("O status do pedido já é: " + statusPedido.toString());
         }
 
         this.status = statusPedido;

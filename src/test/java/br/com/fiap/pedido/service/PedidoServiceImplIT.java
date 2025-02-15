@@ -23,7 +23,7 @@ class PedidoServiceImplIT {
     private PedidoRepository pedidoRepository;
 	
 	@Test
-    void deveListarPedidosComSucesso() throws Exception {
+    void deveListarPedidosComSucesso() {
         //Arrange
         inserirPedido(gerarPedido());
 
@@ -31,14 +31,14 @@ class PedidoServiceImplIT {
         List<Pedido> listaPedidos = pedidoRepository.findAll();
 
 		// Assert
-		assertThat(listaPedidos).isNotEmpty().hasSizeGreaterThan(0);
-		assertThat(listaPedidos).allSatisfy(pedido -> {
+		assertThat(listaPedidos).isNotEmpty().hasSizeGreaterThan(0)
+			.allSatisfy(pedido -> {
 			assertThat(pedido).isNotNull();
 		});
     }
 
 	@Test
-    void deveCriarPedidoComSucesso() throws Exception {
+    void deveCriarPedidoComSucesso() {
 
         //Arrange
         Pedido pedido = gerarPedido();
@@ -48,12 +48,12 @@ class PedidoServiceImplIT {
 
 		// Assert
 		assertThat(pedidoCriado).isNotNull();
-		assertThat(pedidoCriado.getId()).isGreaterThan(0);
-		assertThat(pedidoCriado.getItens().size()).isGreaterThan(0);
-    }
+		assertThat(pedidoCriado.getId()).isPositive();
+		assertThat(pedidoCriado.getItens()).isNotEmpty()
+;    }
 	
 	@Test
-    void deveFinalizarPedidoComSucesso() throws Exception {
+    void deveFinalizarPedidoComSucesso() {
         
 		//Arrange
         Pedido pedido = gerarPedido();
@@ -65,14 +65,13 @@ class PedidoServiceImplIT {
 		var pedidoFinalizado = pedidoRepository.save(pedidoCriado);
 
 		//Assert
-		assertThat(pedidoFinalizado).isNotNull();
 		assertThat(pedidoFinalizado).isInstanceOf(Pedido.class).isNotNull();
 		assertThat(pedidoFinalizado.getDataconclusao()).isEqualTo(pedidoCriado.getDataconclusao());
 		assertThat(pedidoFinalizado.getStatus().name()).isEqualTo(StatusPedido.FINALIZADO.name());
     }
 	
 	@Test
-    void deveObterPedidoComSucesso() throws Exception {
+    void deveObterPedidoComSucesso() {
         //Act
         Pedido pedido = gerarPedido();
     	        
@@ -82,13 +81,12 @@ class PedidoServiceImplIT {
 
 		var pedidoObtido = pedidoObtidoOptional.get();
 		//Assert
-        assertThat(pedidoObtido).isNotNull();
-		assertThat(pedidoObtido).isInstanceOf(Pedido.class).isNotNull();
+        assertThat(pedidoObtido).isNotNull().isInstanceOf(Pedido.class).isNotNull();
 		assertThat(pedidoObtido.getId()).isEqualTo(pedido.getId());
     }
 	
 	@Test
-    void deveAtualizarPedidoComSucesso() throws Exception {
+    void deveAtualizarPedidoComSucesso() {
         
         //Arrange
         Pedido pedido = gerarPedido();    	
@@ -100,14 +98,13 @@ class PedidoServiceImplIT {
 		var pedidoAtualizado = pedidoRepository.save(pedidoCriado);
         
 		//Assert
-        assertThat(pedidoAtualizado).isNotNull();
-		assertThat(pedidoAtualizado).isInstanceOf(Pedido.class).isNotNull();
+        assertThat(pedidoAtualizado).isNotNull().isInstanceOf(Pedido.class).isNotNull();
 		assertThat(pedidoAtualizado.getDataconclusao()).isEqualTo(pedidoCriado.getDataconclusao());
 		assertThat(pedidoAtualizado.getStatus().name()).isEqualTo(StatusPedido.CRIADO.name());
     }
 	
 	@Test
-    void deveExcluirPedidoComSucesso() throws Exception {
+    void deveExcluirPedidoComSucesso() {
         
          //Arrange
          Pedido pedido = gerarPedido();    	

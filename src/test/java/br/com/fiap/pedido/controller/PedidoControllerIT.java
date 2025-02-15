@@ -25,7 +25,7 @@ import br.com.fiap.pedido.repository.PedidoRepository;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 @SpringBootTest(properties = "spring.main.lazy-initialization=true", webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class PedidoControllerIT {
+class PedidoControllerIT {
 
     @LocalServerPort
 	private int port;
@@ -42,7 +42,7 @@ public class PedidoControllerIT {
 	}
     
     @Test
-    void deveListarPedidosComSucesso() throws Exception {
+    void deveListarPedidosComSucesso() {
         //Arrange
         inserirPedido(gerarPedido());
         inserirPedido(gerarPedido());
@@ -55,7 +55,7 @@ public class PedidoControllerIT {
     }
     
     @Test
-    void deveCriarPedidoComSucesso() throws Exception {
+    void deveCriarPedidoComSucesso() {
 
         //Arrange
         Pedido pedido = gerarPedido();
@@ -65,7 +65,7 @@ public class PedidoControllerIT {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(pedido)
                 .when().post(endPoint)
-                .then().statusCode(HttpStatus.OK.value())
+                .then().statusCode(HttpStatus.CREATED.value())
                 .body(matchesJsonSchemaInClasspath("./schemas/PedidoSchema.json"))
                 .body("$", hasKey("id"))
                 .body("$", hasKey("clienteid"))
@@ -76,7 +76,7 @@ public class PedidoControllerIT {
     }
 
     @Test
-    void deveFinalizarPedidoComSucesso() throws Exception {
+    void deveFinalizarPedidoComSucesso() {
         //Arrange
         Pedido pedido = gerarPedido();    	
         inserirPedido(pedido);
@@ -88,7 +88,7 @@ public class PedidoControllerIT {
     }
 
     @Test
-    void deveObterPedidoComSucesso() throws Exception {
+    void deveObterPedidoComSucesso() {
         //Act
         Pedido pedido = gerarPedido();
         inserirPedido(pedido);
@@ -102,7 +102,7 @@ public class PedidoControllerIT {
     }
 
     @Test
-    void deveAtualizarPedidoComSucesso() throws Exception {
+    void deveAtualizarPedidoComSucesso() {
         
         //Arrange
         Pedido pedido = gerarPedido();    	
@@ -119,7 +119,7 @@ public class PedidoControllerIT {
     }
 
     @Test
-    void deveExcluirPedidoComSucesso() throws Exception {
+    void deveExcluirPedidoComSucesso() {
         
          //Arrange
          Pedido pedido = gerarPedido();    	
@@ -131,7 +131,7 @@ public class PedidoControllerIT {
          given().filter(new AllureRestAssured())
                  .contentType(MediaType.APPLICATION_JSON_VALUE)
                  .when().delete(endPoint + "/{id}", pedido.getId())
-                 .then().statusCode(HttpStatus.OK.value());
+                 .then().statusCode(HttpStatus.NO_CONTENT.value());
     }
 
     private Pedido gerarPedido() {

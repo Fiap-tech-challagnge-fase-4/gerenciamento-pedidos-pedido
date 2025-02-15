@@ -1,7 +1,4 @@
 package br.com.fiap.pedido.utils;
-
-import java.util.stream.Collectors;
-
 import br.com.fiap.pedido.model.ItemPedidoModel;
 import br.com.fiap.pedido.model.PedidoModel;
 import br.com.fiap.pedido.model.dto.ItemPedidoRequestDTO;
@@ -12,88 +9,81 @@ import br.com.fiap.pedido.repository.entities.ItemPedido;
 import br.com.fiap.pedido.repository.entities.Pedido;
 
 public class Mapper {
+	
+	private Mapper(){ }
 
     public static PedidoResponseDTO mapPedidoModelParaPedidoResponseDTO(PedidoModel pedidoModel){
 
-        PedidoResponseDTO pedidoResponseDTO = new PedidoResponseDTO(
+    	return new PedidoResponseDTO(
             pedidoModel.getId(),
             pedidoModel.getClienteid(),
-            pedidoModel.getItens().stream().map(a -> mapItemPedidoModelParaItemPedidoResponseDTO(a)).collect(Collectors.toList()),
+            pedidoModel.getItens().stream().map(Mapper::mapItemPedidoModelParaItemPedidoResponseDTO).toList(),
             pedidoModel.getValortotal(),
             pedidoModel.getStatus(),
             pedidoModel.getDatacriacao(),
             pedidoModel.getDataconclusao()
         );
-
-        return pedidoResponseDTO;
     }
 
     public static ItemPedidoResponseDTO mapItemPedidoModelParaItemPedidoResponseDTO(ItemPedidoModel itemPedidoModel){
 
-        ItemPedidoResponseDTO itemPedidoResponseDTO = new ItemPedidoResponseDTO(
+    	return new ItemPedidoResponseDTO(
             itemPedidoModel.getId(),
             itemPedidoModel.getProdutoid(),
             itemPedidoModel.getQuantidade(),
             itemPedidoModel.getPrecounitario()
         );
-        return itemPedidoResponseDTO;
     }
 
     public static PedidoModel mapPedidoRequestDtoParaPedidoModel(PedidoRequestDTO pedidoRequestDTO){
 
-        PedidoModel pedido = new PedidoModel(
+        return new PedidoModel(
             pedidoRequestDTO.clienteid(),
-            pedidoRequestDTO.itens().stream().map(item -> mapItensPedidoRequestDtoParaPedidoModel(item)).collect(Collectors.toList()),
+            pedidoRequestDTO.itens().stream().map(Mapper::mapItensPedidoRequestDtoParaPedidoModel).toList(),
             pedidoRequestDTO.valortotal(),
             pedidoRequestDTO.status(),
             pedidoRequestDTO.datacriacao(),
             pedidoRequestDTO.dataconclusao()
         );
-        return pedido;
     }
 
     public static ItemPedidoModel mapItensPedidoRequestDtoParaPedidoModel(ItemPedidoRequestDTO itemPedidoRequestDTO){
 
-        ItemPedidoModel item = new ItemPedidoModel(itemPedidoRequestDTO.produtoid(), itemPedidoRequestDTO.quantidade(), itemPedidoRequestDTO.precounitario());
-        return item;
+    	return new ItemPedidoModel(itemPedidoRequestDTO.produtoid(), itemPedidoRequestDTO.quantidade(), itemPedidoRequestDTO.precounitario());
     }
 
     public static ItemPedido mapItemPedidoModelParaItemPedido(ItemPedidoModel itemPedidoModel){
-        ItemPedido item = new ItemPedido(itemPedidoModel.getId(), itemPedidoModel.getProdutoid(), itemPedidoModel.getQuantidade(), itemPedidoModel.getPrecounitario());
-        return item;
+        return new ItemPedido(itemPedidoModel.getId(), itemPedidoModel.getProdutoid(), itemPedidoModel.getQuantidade(), itemPedidoModel.getPrecounitario());
     }
 
     public static PedidoModel mapPedidoParaPedidoModel(Pedido pedido){
 
-        PedidoModel pedidoModel = new PedidoModel(
+    	return new PedidoModel(
             pedido.getId(),
             pedido.getClienteid(),
-            pedido.getItens().stream().map(item -> mapPedidoModelParaPedido(item)).collect(Collectors.toList()),
+            pedido.getItens().stream().map(Mapper::mapPedidoModelParaPedido).toList(),
             pedido.getValortotal(),
             pedido.getStatus(),
             pedido.getDatacriacao(),
             pedido.getDataconclusao()
         );
-        return pedidoModel;
     }
 
     public static ItemPedidoModel mapPedidoModelParaPedido(ItemPedido itemPedido){
 
-        ItemPedidoModel item = new ItemPedidoModel(itemPedido.getId(), itemPedido.getProdutoid(), itemPedido.getQuantidade(), itemPedido.getPrecounitario());
-        return item;
+    	return new ItemPedidoModel(itemPedido.getId(), itemPedido.getProdutoid(), itemPedido.getQuantidade(), itemPedido.getPrecounitario());        
     }
 
     public static Pedido mapPedidoModelParaPedido(PedidoModel pedidoModel){
         
-        Pedido pedido = new Pedido(
+    	return new Pedido(
             pedidoModel.getId(),
             pedidoModel.getClienteid(),
-            pedidoModel.getItens().stream().map(item -> mapItemPedidoModelParaItemPedido(item)).collect(Collectors.toList()),
+            pedidoModel.getItens().stream().map(Mapper::mapItemPedidoModelParaItemPedido).toList(),
             pedidoModel.getValortotal(),
             pedidoModel.getStatus(),
             pedidoModel.getDatacriacao(),
             pedidoModel.getDataconclusao()
         );
-        return pedido;
     }
 }

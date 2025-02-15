@@ -70,7 +70,7 @@ public class PedidoControllerTest {
     
     @Test
     void deveListarPedidosComSucesso() throws Exception {
-        List<PedidoModel> pedidos = gerarListaPedidos().stream().map(p -> Mapper.mapPedidoParaPedidoModel(p)).toList();
+        List<PedidoModel> pedidos = gerarListaPedidos().stream().map(Mapper::mapPedidoParaPedidoModel).toList();
         when(pedidoService.listarPedido()).thenReturn(pedidos);
 
         mockMvc.perform(get(endPoint))
@@ -92,7 +92,7 @@ public class PedidoControllerTest {
         mockMvc.perform(post(endPoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(content))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(5L))
                 .andExpect(jsonPath("$.valortotal").value(59.90));
     }
@@ -155,15 +155,14 @@ public class PedidoControllerTest {
     @Test
     void deveExcluirPedidoComSucesso() throws Exception {
         doNothing().when(pedidoService).excluirPedido(anyInt());
-        mockMvc.perform(delete(endPoint + "/1")).andExpect(status().isOk());
+        mockMvc.perform(delete(endPoint + "/1")).andExpect(status().isNoContent());
     }
 
     private List<Pedido> gerarListaPedidos() {
-		List<Pedido> listaReservas = Arrays.asList(
+		return Arrays.asList(
 			gerarPedido(1),
 			gerarPedido(2)
 		);
-		return listaReservas;
 	}
 
     private Pedido gerarPedido(int id) {		
