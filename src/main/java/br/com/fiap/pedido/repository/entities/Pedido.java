@@ -1,4 +1,4 @@
-package br.com.fiap.pedido.model;
+package br.com.fiap.pedido.repository.entities;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -16,12 +16,18 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @Entity
 @Table(name = "Pedido")
+@AllArgsConstructor
 public class Pedido implements Serializable{
+    public Pedido(){
+        this.id = 0;
+    }
+
     @Id
     private Integer id;
     private Integer clienteid;
@@ -34,7 +40,3 @@ public class Pedido implements Serializable{
     private LocalDateTime datacriacao;
     private LocalDateTime dataconclusao;
 }
-
-
-
-
