@@ -43,4 +43,8 @@ public class ItemPedido implements Serializable{
         this.quantidade = quantidade;
         this.precounitario = precounitario;
     }
+
+    public void setPedido(Pedido pedido){
+        this.pedido = pedido;
+    }
 }

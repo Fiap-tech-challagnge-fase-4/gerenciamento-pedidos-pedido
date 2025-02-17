@@ -76,7 +76,7 @@ public class Mapper {
 
     public static Pedido mapPedidoModelParaPedido(PedidoModel pedidoModel){
         
-    	return new Pedido(
+    	Pedido pedido = new Pedido(
             pedidoModel.getId(),
             pedidoModel.getClienteid(),
             pedidoModel.getItens().stream().map(Mapper::mapItemPedidoModelParaItemPedido).toList(),
@@ -85,5 +85,11 @@ public class Mapper {
             pedidoModel.getDatacriacao(),
             pedidoModel.getDataconclusao()
         );
+
+        for (ItemPedido itemPedido : pedido.getItens()) {
+            itemPedido.setPedido(pedido);
+        }
+
+        return pedido;
     }
 }
