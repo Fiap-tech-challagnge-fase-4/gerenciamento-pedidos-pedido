@@ -197,7 +197,7 @@ public class PedidoServiceImpl implements PedidoService {
             } else {
                 try {
                     JsonNode produtoJson = objectMapper.readTree((response.getBody()));
-                    int quantidadeEstoque = produtoJson.get("quantidadeestoque").asInt();
+                    int quantidadeEstoque = produtoJson.get("quantidadeEstoque").asInt();
 
                     if (quantidadeEstoque < quantidade)
                         return false;
