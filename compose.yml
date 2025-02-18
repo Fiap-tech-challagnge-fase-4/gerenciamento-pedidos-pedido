@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: 'postgres:latest'
+    image: 'postgres:alpine'
     container_name: pedidoDB
     environment:
       - 'POSTGRES_DB=pedidoDB'
@@ -22,3 +22,18 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: password
+  app:
+      image: 'openjdk:17-jdk'
+      container_name: pedidoApp
+      depends_on:
+        - postgres
+      environment:
+        - 'SPRING_DATASOURCE_URL=jdbc:postgresql://pedidoDB:5432/pedidoDB'
+        - 'SPRING_DATASOURCE_USERNAME=sa'
+        - 'SPRING_DATASOURCE_PASSWORD=password'
+      ports:
+        - '8084:8084'
+      volumes:
+        - './target:/app'
+      working_dir: /app
+      command: [ "java", "-jar", "pedido-0.0.1-SNAPSHOT.jar" ]
