@@ -17,7 +17,11 @@ Este projeto faz parte do *Tech Challenge - Fase 4*, nele foi construido um Micr
    ```bash
    docker login
     ```
-2. **Execute o seguinte comando para subir os serviços:**
+2. **Crie uma rede Docker, caso não tenha criado:**
+     ```bash
+    docker network create app_network
+    ```
+3. **Execute o seguinte comando para subir os serviços:**
      ```bash
     docker compose up -d
     ```
