@@ -8,6 +8,8 @@ services:
       - 'POSTGRES_USER=sa'
     ports:
       - '5435:5432'
+    networks:
+      - app_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sa -d pedidoDB"]
       interval: 10s
@@ -22,6 +24,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - app_network
   app:
       image: 'openjdk:17-jdk'
       container_name: pedidoApp
@@ -37,3 +41,10 @@ services:
         - './target:/app'
       working_dir: /app
       command: [ "java", "-jar", "pedido-0.0.1-SNAPSHOT.jar" ]
+      networks:
+        - app_network
+
+networks:
+  app_network:
+    external: true
+
