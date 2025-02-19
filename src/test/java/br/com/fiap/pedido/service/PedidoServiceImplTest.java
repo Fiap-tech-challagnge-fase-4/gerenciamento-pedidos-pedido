@@ -208,6 +208,6 @@ class PedidoServiceImplTest {
 	}
 
 	public static String gerarProduto(){
-		return "{\"id\": 2,\"nome\": \"Camiseta Masculina\",\"descricao\": \"Camiseta de corrida\",\"preco\": 7.15,\"quantidadeestoque\": 80,\"categoria\": \"Vestuário\",\"imagemurl\": \"\",\"codigobarras\": \"102030\",\"status\": \"Ativo\"}";
+		return "{\"id\": 2,\"nome\": \"Camiseta Masculina\",\"descricao\": \"Camiseta de corrida\",\"preco\": 7.15,\"quantidadeEstoque\": 80,\"categoria\": \"Vestuário\",\"imagemurl\": \"\",\"codigobarras\": \"102030\",\"status\": \"Ativo\"}";
 	}
  }
